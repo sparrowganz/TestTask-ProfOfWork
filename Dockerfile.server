@@ -1,0 +1,19 @@
+FROM golang:latest as builder
+
+WORKDIR /app
+
+COPY . .
+COPY server/cmd/main.go .
+RUN go mod vendor
+
+RUN CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -v -o server_app .
+
+
+FROM alpine:latest
+
+WORKDIR /home
+
+COPY --from=builder /app/server_app .
+
+ENTRYPOINT ["./server_app"]
+CMD ["--port=7001"]
